@@ -299,6 +299,8 @@ ws[1][1].style.alignment.rotation = 90
 ws[1][1].style.alignment.wrap_text = True
 ws[1][1].style.borders.top.color = Color(255, 0, 0)
 ws[1][1].style.borders.right.style = '-.'
+ws[1][1].style.data_type = DataTypes.INLINE_STRING
+ws[1][1].style.quote_prefix = True
 ```
 
 Each attribute also has constructors for implementing via `set_cell_style()`.

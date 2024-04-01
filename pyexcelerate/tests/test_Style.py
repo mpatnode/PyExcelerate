@@ -7,10 +7,12 @@ import nose
 import openpyxl
 from nose.tools import eq_, ok_, raises
 
+from ..DataTypes import DataTypes
 from ..Alignment import Alignment
 from ..Color import Color
 from ..Fill import Fill
 from ..Font import Font
+from ..Format import Format
 from ..Style import Style
 from ..Workbook import Workbook
 from .utils import get_output_path
@@ -71,6 +73,14 @@ def test_invalid_vertical():
     a.vertical = "bottom"
     eq_(a.vertical, "bottom")
     a.vertical = "somewhere"
+
+
+@raises(TypeError)
+def test_invalid_quote_prefix():
+    a = Style()
+    a.quote_prefix = True
+    ok_(a.quote_prefix)
+    a.quote_prefix = "some random nonsense"
 
 
 def test_style_compression():
@@ -187,3 +197,31 @@ def test_unicode_with_styles():
     ws[1][1].value = u"Körperschaft des öffentlichen"
     ws.set_col_style(2, Style(size=0))
     wb.save(get_output_path("unicode-styles.xlsx"))
+
+
+def test_style_data_type():
+    wb = Workbook()
+    ws = wb.new_sheet("test")
+    ws[1][2].value = "no datatype"
+    ws[1][3].value = "has datatype"
+    ws[2][1].value = "no format"
+    ws[3][1].value = "has format"
+    ws[2][2].value = "=abcde"
+    ws[2][3].value = "=abcde"
+    ws[3][2].value = "=abcde"
+    ws[3][3].value = "=abcde"
+    ws[2][3].style.data_type = DataTypes.INLINE_STRING
+    ws[3][3].style.data_type = DataTypes.INLINE_STRING
+    ws[3][2].style.format = Format('@')
+    ws[3][3].style.format = Format('@')
+    wb.save(r"test.xlsx")
+    
+
+def test_style_quota_prefix():
+    wb = Workbook()
+    ws = wb.new_sheet("test")
+    ws[1][1].value = "abcde"
+    ws[1][1].style.quote_prefix = True
+    ws[1][2].value = "'abcde"
+    ws[1][2].style.quote_prefix = True
+    wb.save(r"test.xlsx")

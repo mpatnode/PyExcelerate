@@ -4,10 +4,10 @@ import six
 
 
 class Style(object):
-    __slots__ = ("_font", "_fill", "_format", "_alignment", "_borders", "_size", "id")
+    __slots__ = ("_font", "_fill", "_format", "_alignment", "_borders", "_size", "_data_type", "_quote_prefix", "id")
 
     def __init__(
-        self, font=None, fill=None, format=None, alignment=None, borders=None, size=None
+        self, font=None, fill=None, format=None, alignment=None, borders=None, size=None, data_type=None, quote_prefix=None
     ):
         self._font = font
         self._fill = fill
@@ -15,10 +15,36 @@ class Style(object):
         self._alignment = alignment
         self._borders = borders
         self._size = size
+        self._data_type = data_type
+        self._quote_prefix = quote_prefix
 
+    @property
+    def data_type(self):
+        return self._data_type
+    
+    @data_type.setter
+    def data_type(self, value):
+        Utility.lazy_set(self, "_data_type", None, value)
+    
+    @property
+    def quote_prefix(self):
+        return self._quote_prefix
+    
+    @quote_prefix.setter
+    def quote_prefix(self, value):
+        if value not in (True, False):
+            raise TypeError(
+                "Invalid quote prefix value. Expects either True or False."
+            )
+        Utility.lazy_set(self, "_quote_prefix", None, value)
+    
     @property
     def size(self):
         return self._size
+    
+    @size.setter
+    def size(self, value):
+        Utility.lazy_set(self, "_size", None, value)
 
     @property
     def is_default(self):
@@ -29,6 +55,8 @@ class Style(object):
             or self._alignment
             or self._borders
             or self._size is not None
+            or self._data_type is not None
+            or self._quote_prefix is not None
         )
 
     @property
@@ -84,6 +112,8 @@ class Style(object):
             tag.append('applyFill="1" fillId="%d"' % (self._fill.id + 1))
         if not self._borders is None:
             tag.append('applyBorder="1" borderId="%d"' % (self._borders.id))
+        if not self._quote_prefix is None:
+            tag.append('quotePrefix="%d"' % (1 if self._quote_prefix else 0))
         if self._alignment is None:
             return '<xf xfId="0" %s/>' % (" ".join(tag))
         else:
@@ -93,7 +123,8 @@ class Style(object):
             )
 
     def __hash__(self):
-        return hash((self._font, self._fill, self._format, self._alignment))
+        return hash((self._font, self._fill, self._format, self._alignment, 
+                     self._size, self._data_type, self._quote_prefix))
 
     def __eq__(self, other):
         if other is None:
@@ -116,6 +147,9 @@ class Style(object):
             format=operation(self.format, other.format),
             alignment=operation(self.alignment, other.alignment),
             borders=operation(self.borders, other.borders),
+            size=operation(self.size, other.size, None),
+            data_type=operation(self.data_type, other.data_type, None),
+            quote_prefix=operation(self.quote_prefix, other.quote_prefix, None),
         )
 
     def _to_tuple(self):
@@ -126,6 +160,8 @@ class Style(object):
             self._alignment,
             self._borders,
             self._size,
+            self._data_type,
+            self._quote_prefix,
         )
 
     def __str__(self):

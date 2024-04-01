@@ -228,8 +228,12 @@ class Worksheet(object):
         if cell is None:
             return ""  # no cell data
         # boolean values are treated oddly in dictionaries, manually override
-        type = DataTypes.get_type(cell)
 
+        if style and style.data_type:
+            type = style.data_type
+        else:
+            type = DataTypes.get_type(cell)
+            
         if type == DataTypes.NUMBER:
             if math.isnan(cell):
                 z = '" t="e"><v>#NUM!</v></c>'
