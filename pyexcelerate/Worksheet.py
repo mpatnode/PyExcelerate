@@ -13,6 +13,7 @@ import six
 from . import Format, Panes, Range, Style
 from .DataTypes import DataTypes
 from .Utility import to_unicode
+from .AutoFilter import AutoFilter
 
 # From https://stackoverflow.com/a/22273639/86433
 _illegal_unichrs = [
@@ -88,7 +89,7 @@ class Worksheet(object):
         self._panes = Panes.Panes()
         self._show_grid_lines = True
         self.hidden = hidden
-        self.auto_filter = False
+        self.auto_filter = None
         if data is not None:
             # Iterate over the data to ensure we receive a copy of immutables.
             if isinstance(data, list):
@@ -373,8 +374,32 @@ class Worksheet(object):
                 row_data.append(self.__get_cell_data(cell, x, y, style))
             yield x, row_data
 
+    def set_auto_filter(self, start_column, end_column=None):
+        """
+        Set auto filter for the worksheet.
+        
+        :param start_column: The starting column for the auto filter (e.g., 1 for column A)
+        :param end_column: The ending column for the auto filter. If None, it will be set to the last column with data.
+        """
+        if end_column is None:
+            end_column = self.num_columns
+        self.auto_filter = (start_column, end_column)
+
     def get_auto_filter_xml_string(self):
         if self.auto_filter:
+            start_col, end_col = self.auto_filter
             return '<autoFilter ref="{}"/>'.format(
-                Range.Range((1, 1), (self.num_rows, self.num_columns), self)
+                Range.Range((1, start_col), (self.num_rows, end_col), self)
             )
+        return ""
+
+    def get_xml(self):
+        # ... (existing code) ...
+
+        # Add auto filter XML if it exists
+        auto_filter_xml = self.get_auto_filter_xml_string()
+        if auto_filter_xml:
+            worksheet.append(auto_filter_xml)
+
+        # ... (rest of the existing code) ...
+
